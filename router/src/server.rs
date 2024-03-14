@@ -100,6 +100,36 @@ async fn get_model_info(info: Extension<Info>) -> Json<Info> {
     Json(info.0)
 }
 
+/// Text Generation Inference endpoint models
+#[utoipa::path(
+get,
+tag = "Text Generation Inference",
+path = "/v1/models",
+responses((status = 200, description = "Served models", body = Info))
+)]
+#[instrument]
+async fn get_models() -> Json<Value> {
+    let data = Value::Object({
+        let mut data = serde_json::Map::new();
+        data.insert("id".to_owned(), Value::String("tgi".to_owned()));
+        data.insert("object".to_owned(), Value::String("model".to_owned()));
+        data.insert("created".to_owned(), Value::Number(1710456800.into()));
+        data.insert("owned_by".to_owned(), Value::String("huggingface".to_owned()));
+        data.insert("root".to_owned(), Value::String("tgi".to_owned()));
+        data.insert("parent".to_owned(), Value::Null);
+        data
+    });
+
+    let response = Value::Object({
+        let mut res = serde_json::Map::new();
+        res.insert("object".to_owned(), Value::String("list".to_owned()));
+        res.insert("data".to_owned(), Value::Array(vec![data]));
+        res
+    });
+
+    Json(response)
+}
+
 #[utoipa::path(
 get,
 tag = "Text Generation Inference",
@@ -1171,6 +1201,7 @@ pub async fn run(
     paths(
     health,
     get_model_info,
+    get_models,
     compat_generate,
     generate,
     generate_stream,
@@ -1371,6 +1402,7 @@ pub async fn run(
         .route("/generate_stream", post(generate_stream))
         .route("/v1/chat/completions", post(chat_completions))
         .route("/v1/completions", post(completions))
+        .route("/v1/models", get(get_models))
         .route("/vertex", post(vertex_compatibility))
         .route("/tokenize", post(tokenize))
         .route("/health", get(health))
