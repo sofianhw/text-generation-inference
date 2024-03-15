@@ -549,6 +549,13 @@ async fn generate_stream_internal(
                             }
                         }
                     }
+                    if !error {
+                        let final_event_data = "[DONE]"; // Your final message or data here
+                        let final_event = axum::response::sse::Event::default()
+                            .data(final_event_data); // Use .json(data) for JSON data, ensure it's serialized as a string
+
+                        yield Ok(final_event);
+                    }
                 },
                 // yield error
                 Err(err) => {
